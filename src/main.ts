@@ -1,7 +1,27 @@
+import Elysia from "elysia";
 import config from "./config";
 import { testConnection } from "./database";
+import { user } from "./modules/user";
 
 const { APP_PORT, APP_HOST } = config;
+let app: Elysia | null = null;
+
+async function closeGracefully(signal: string) {
+  console.log(`\nReceived ${signal}, closing server gracefully...`);
+
+  if (app) {
+    try {
+      await app.stop();
+      console.log("Server closed successfully");
+      process.exit(0);
+    } catch (error) {
+      console.error("Error during shutdown:", error);
+      process.exit(1);
+    }
+  } else {
+    process.exit(0);
+  }
+}
 
 async function main() {
   // check database connection
@@ -11,6 +31,10 @@ async function main() {
   }
 
   try {
+    app = new Elysia()
+      .use(user)
+      .get("/", () => "Hello World")
+      .listen(APP_PORT);
     console.log(`✅ Server is running on http://${APP_HOST}:${APP_PORT}`);
   } catch (e) {
     console.log(`Exception caught at main(): ${e}`);
@@ -22,5 +46,9 @@ process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at: ", promise, "reason: ", reason);
   process.exit(1);
 });
+
+// Register shutdown handlers
+process.on("SIGTERM", () => closeGracefully("SIGTERM"));
+process.on("SIGINT", () => closeGracefully("SIGINT"));
 
 main();
