@@ -1,6 +1,6 @@
 import z, { email } from "zod";
 
-export namespace UserModel {
+namespace UserModel {
   export const userResponse = z.object({
     id: z.ulid(),
     firstName: z.string(),
@@ -10,3 +10,5 @@ export namespace UserModel {
 
   export type UserResponse = z.infer<typeof userResponse>;
 }
+
+export default UserModel;

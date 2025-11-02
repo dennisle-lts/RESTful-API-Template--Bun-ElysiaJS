@@ -1,9 +1,10 @@
 import Elysia from "elysia";
 import config from "./config";
 import { testConnection } from "./database";
-import { user } from "./modules/user";
 import openapi from "@elysiajs/openapi";
 import z from "zod";
+import { UserPlugin } from "./modules/user";
+import { GlobalExceptionPlugin } from "./modules/exception";
 
 const { APP_PORT, APP_HOST } = config;
 let app: Elysia | null = null;
@@ -34,6 +35,7 @@ async function main() {
 
   try {
     app = new Elysia()
+      .use(GlobalExceptionPlugin)
       .use(
         openapi({
           mapJsonSchema: {
@@ -63,7 +65,7 @@ async function main() {
           },
         })
       )
-      .use(user)
+      .use(UserPlugin)
       .get("/", () => "Hello World", { detail: { hide: true } })
       .listen(APP_PORT);
     console.log(`✅ Server is running on http://${APP_HOST}:${APP_PORT}`);
