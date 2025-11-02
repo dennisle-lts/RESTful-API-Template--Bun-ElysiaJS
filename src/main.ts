@@ -1,10 +1,9 @@
 import Elysia from "elysia";
 import config from "./config";
 import { testConnection } from "./database";
-import openapi from "@elysiajs/openapi";
-import z from "zod";
 import { UserPlugin } from "./modules/user";
 import { GlobalExceptionPlugin } from "./modules/exception";
+import { OpenAPIConfigPlugin } from "./modules/openapi";
 
 const { APP_PORT, APP_HOST } = config;
 let app: Elysia | null = null;
@@ -36,35 +35,7 @@ async function main() {
   try {
     app = new Elysia()
       .use(GlobalExceptionPlugin)
-      .use(
-        openapi({
-          mapJsonSchema: {
-            zod: z.toJSONSchema,
-          },
-          documentation: {
-            info: {
-              title: "Sample ElysiaJS RESTful API",
-              version: "1.0.0",
-            },
-            components: {
-              securitySchemes: {
-                bearerAuth: {
-                  type: "http",
-                  scheme: "bearer",
-                  bearerFormat: "JWT",
-                },
-              },
-            },
-            tags: [
-              {
-                name: "Authentication",
-                description: "Authentication endpoints",
-              },
-              { name: "User", description: "User endpoints" },
-            ],
-          },
-        })
-      )
+      .use(OpenAPIConfigPlugin)
       .use(UserPlugin)
       .get("/", () => "Hello World", { detail: { hide: true } })
       .listen(APP_PORT);
